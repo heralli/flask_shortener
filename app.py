@@ -10,12 +10,13 @@ def get_db_connection():
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'this should be a secret random string'
+app.config['SECRET_KEY'] = 'your secret string'
+app.config['BASE_URL'] = 'localhost:5000/'
 
-hashids = Hashids(min_length=4, salt=app.config['SECRET_KEY'])
+hashids = Hashids(min_length=5, salt=app.config['SECRET_KEY'])
 
 
-@app.route('/', methods=('GET', 'POST'))
+@app.route('/new', methods=('GET', 'POST'))
 def index():
     conn = get_db_connection()
 
@@ -33,7 +34,7 @@ def index():
 
         url_id = url_data.lastrowid
         hashid = hashids.encode(url_id)
-        short_url = request.host_url + hashid
+        short_url = app.config['BASE_URL'] + hashid
 
         return render_template('index.html', short_url=short_url)
 
@@ -73,7 +74,7 @@ def stats():
     urls = []
     for url in db_urls:
         url = dict(url)
-        url['short_url'] = request.host_url + hashids.encode(url['id'])
+        url['short_url'] = app.config['BASE_URL'] + hashids.encode(url['id'])
         urls.append(url)
 
     return render_template('stats.html', urls=urls)
